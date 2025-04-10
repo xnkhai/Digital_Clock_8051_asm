@@ -1,3 +1,21 @@
+; definition
+LCD1602_RS_Pin equ P0.0
+LCD1602_RW_Pin equ P0.1
+LCD1602_EN_Pin equ P0.2
+LCD1602_Data_Port equ P1
+DS1307_Address equ #4eh
+SDA equ P3.6
+SCL equ P3.7
+
+org 0000h
+	jmp Start
+
+org 0100h
+Start:
+
+Loop:
+	jmp Loop
+
 
 ;-----------------------------------------------
 ; I2C Interface
@@ -64,6 +82,9 @@ I2C_Stop:
       setb SCL;					(1 cycle)
       setb SDA	;stop condition			(1 cycle)
       ret;					(2 cycle)
+;-----------------------------------------------;
+;delay functions
+;-----------------------------------------------;
 delay_5us:
       nop ; 					(1 cycle)
       nop ; 					(1 cycle)
@@ -101,12 +122,34 @@ delay_ms:
       acall delay_1ms;				(2000 cycles)
       djnz R2, delay_ms_loop;			(2 cycle)
       ret;					(2 cycle)
-      
-
-
-
-
-
+     
 ;-----------------------------------------------;
-;lcd 8-bit paralel 
+;lcd 8-bit parallel 
 ;-----------------------------------------------;
+; brief: send instuction code to lcd 1602
+; use register A as instruction code byte to be sent
+LCD1602_Send_Ins:
+	setb LCD1602_EN_Pin
+	clr LCD1602_RW_Pin
+	clr LCD1602_RS_Pin
+	mov LCD1602_Data_Port, A
+	acall delay_3us
+	clr LCD1602_EN_Pin
+	mov R2, #2d
+	acall delay_ms
+	ret
+	
+; brief: send data to lcd 1602's RAM (DDRAM, CGRAM)
+; use register A as data byte to be sent
+LCD1602_Send_Data:
+	setb LCD1602_EN_Pin
+	clr LCD1602_RW_Pin
+	setb LCD1602_RS_Pin
+	mov LCD1602_Data_Port, A
+	acall delay_3us
+	clr LCD1602_EN_Pin
+	mov R2, #2d
+	acall delay_ms
+	ret
+
+end
