@@ -9,7 +9,7 @@ This project demonstrates how to interface the DS1307 Real-Time Clock (RTC) modu
 - Time reading and ASCII conversion
 - Final time formatting and display
 
-## ⚙️ Functions and Descriptions
+##  Functions and Descriptions
 
 ### 🟡 LCD Control Functions
 | Function | Description |
@@ -31,7 +31,7 @@ This project demonstrates how to interface the DS1307 Real-Time Clock (RTC) modu
 | `CONVERT_BCD_TO_ASCII` | Converts a BCD byte (in A) to ASCII digits. Output: R5 = tens, R6 = units. |
 | `DISPLAY_TIME_TO_LCD` | Combines hours (R4), minutes (R3), seconds (R2) into formatted time "HH:MM:SS" and sends to LCD. |
 
-## 👥 Task Assignment (5 members)
+##  Task Assignment (5 members)
 | Member | Responsibility |
 |--------|----------------|
 | **Task 1** | Time display function `DISPLAY_TIME_TO_LCD`, overall integration, testing, report |
