@@ -1,7 +1,7 @@
 
-# ⏰ DS1307 Real-Time Clock with 8051 and LCD1602
+# DS1307 Real-Time Clock with 8051 and LCD1602
 
-## 📌 Overview
+##  Overview
 This project demonstrates how to interface the DS1307 Real-Time Clock (RTC) module with an 8051 microcontroller and display the time on an LCD1602. It includes:
 
 - LCD display control
@@ -48,5 +48,5 @@ This project demonstrates how to interface the DS1307 Real-Time Clock (RTC) modu
 
 ---
 
-> 🧑‍💻 Group Leader: **Khang Huynh**  
-> 🔧 Project: Real-Time Clock using DS1307 + 8051 + LCD1602
+>  Group Leader: **Khang Huynh**  
+>  Project: Real-Time Clock using DS1307 + 8051 + LCD1602
