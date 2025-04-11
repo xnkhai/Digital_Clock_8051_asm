@@ -13,9 +13,19 @@ org 0000h
 
 org 0100h
 Start:
+	acall LCD_INIT			; Khởi tạo LCD
 
-Loop:
-	jmp Loop
+MainLoop:
+	acall DS1307_GET_TIME		; Đọc giờ từ DS1307, lưu vào R2, R3, R4
+	acall DISPLAY_TIME_TO_LCD	; Hiển thị lên LCD
+
+	mov R2, #5			; Delay 5 lần * 200ms = khoảng 1 giây
+Delay1s:
+	mov R1, #200
+	acall delay_ms
+	djnz R2, Delay1s
+
+	sjmp MainLoop			; Lặp lại
 
 
 ;-----------------------------------------------
@@ -156,33 +166,77 @@ LCD1602_Send_Data:
 end
 =======
 ;-----------------------------------------------
-; LCD_SETUP
-;-----------------------------------------------
-
-
-
-;-----------------------------------------------
-; LCD_CHAR
-;-----------------------------------------------
-
-
-;-----------------------------------------------
 ; LCD_INIT
-;-----------------------------------------------
-
-
-
-;-----------------------------------------------
-; LCD_STRING
+; Khởi tạo LCD1602 chế độ 8-bit
+; Gửi các lệnh sau (dùng thanh ghi A + gọi LCD1602_Send_Ins):
+; - 0x38: chế độ 8-bit, 2 dòng
+; - 0x0C: hiển thị, tắt con trỏ
+; - 0x01: xóa màn hình
+; - 0x06: tự động tăng địa chỉ, không dịch màn hình
 ;-----------------------------------------------
 
 
 ;-----------------------------------------------
 ; LCD_CLEAR
+; Gửi lệnh 0x01 để xóa toàn bộ nội dung LCD
+; Gọi LCD1602_Send_Ins, không cần thay đổi gì thêm
 ;-----------------------------------------------
 
 
 ;-----------------------------------------------
 ; LCD_SETCURSOR
+; Đặt vị trí con trỏ tại (row, col)
+; - Input: R0 = row (0 hoặc 1), R1 = col (0..15)
+; - Tính địa chỉ DDRAM:
+;     row = 0 → addr = 0x80 + col
+;     row = 1 → addr = 0xC0 + col
+; - Gán addr vào A, rồi gọi LCD1602_Send_Ins
 ;-----------------------------------------------
->>>>>>> b347c8e (add hello)
+
+
+;-----------------------------------------------
+; LCD_SEND_STRING
+; LCD_Send_String
+; Gửi chuỗi ký tự đến LCD
+; - DPTR trỏ đến chuỗi kết thúc bằng 0 (null-terminated)
+; - Duyệt từng ký tự:
+;     + MOVX A, @DPTR
+;     + CJNE A, #0, tiếp tục
+;     + Gọi LCD1602_Send_Data
+;-----------------------------------------------
+
+
+;-----------------------------------------------
+; DS1307_READ_BYTE
+; Đọc 1 byte dữ liệu từ DS1307 tại địa chỉ reg
+; Tham số: R0 chứa địa chỉ thanh ghi (reg)
+; Trả về: A chứa dữ liệu đọc được từ DS1307
+;-----------------------------------------------
+
+
+;-----------------------------------------------
+; DS1307_GET_TIME
+; Đọc thời gian hiện tại từ DS1307 (giây, phút, giờ)
+; Trả về: R2 = giây, R3 = phút, R4 = giờ
+;-----------------------------------------------
+
+
+;-----------------------------------------------
+; CONVERT_BCD_TO_ASCII
+; Chuyển 1 byte BCD sang 2 ký tự ASCII (ví dụ: 0x45 -> '4', '5')
+; Đầu vào: A chứa giá trị BCD
+; Đầu ra: R5 = ASCII hàng chục, R6 = ASCII hàng đơn vị
+;-----------------------------------------------
+
+
+
+;-----------------------------------------------
+; DISPLAY_TIME_TO_LCD
+; Hiển thị thời gian hiện tại lên LCD1602 ở hàng 1, cột 0
+; Định dạng: HH:MM:SS
+; mục đích của hàm này là sao? là dùng để gọi các hàm đã viết phía trên để trong hàm main chỉ cần gọi hàm DISPLAY_TIME_TO_LCD
+; và thêm một số cái delay thì sẽ hiện giờ 
+;-----------------------------------------------
+
+
+
