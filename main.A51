@@ -227,7 +227,7 @@ end
 ; Đầu vào: A chứa giá trị BCD
 ; Đầu ra: R5 = ASCII hàng chục, R6 = ASCII hàng đơn vị
 ;-----------------------------------------------
-
+xuan khai was here gay ????
 
 
 ;-----------------------------------------------
