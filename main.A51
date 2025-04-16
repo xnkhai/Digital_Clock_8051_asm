@@ -7,6 +7,25 @@ LCD1602_Data_Port equ P1
 DS1307_Address equ #4eh
 SDA equ P3.6
 SCL equ P3.7
+DS1307_Second_Reg equ #00h
+DS1307_Minutes_Reg equ #01h
+DS1307_Hours_Reg equ #02h
+DS1307_Day_Reg equ #03h
+DS1307_Date_Reg equ #04h
+DS1307_Month_Reg equ #05h
+DS1307_Year_Reg equ #06h
+DS1307_Control_Reg equ #07h
+DS1307_Ram equ #08h
+LCD_Clear_Screen equ #01h
+LCD_Reset_Cursor equ #02h
+LCD_Input_Set equ #04h
+LCD_Display_Switch equ #08h
+LCD_Shift equ #10h
+LCD_Function_Set equ #20h
+LCD_Set_CGRAM_Addr equ #40h
+LCD_Set_DDRAM_Addr equ #80h
+
+
 
 org 0000h
 	jmp Start
