@@ -182,8 +182,6 @@ LCD1602_Send_Data:
 	acall delay_ms
 	ret
 
-end
-=======
 ;-----------------------------------------------
 ; LCD_INIT
 ; Khởi tạo LCD1602 chế độ 8-bit
@@ -246,8 +244,19 @@ end
 ; Đầu vào: A chứa giá trị BCD
 ; Đầu ra: R5 = ASCII hàng chục, R6 = ASCII hàng đơn vị
 ;-----------------------------------------------
-
-
+CONVERT_BCD_TO_ASCII:
+    mov R5, A 
+    anl A, #0fh
+    mov R6, #30h
+    orl A, R6
+    mov R6, A 
+    mov A, R5 
+    swap A          ; swap nibbles
+    anl A, #0fh 
+    mov R5, #30h
+    orl A, R5 
+    mov R5, A 
+    ret 
 
 ;-----------------------------------------------
 ; DISPLAY_TIME_TO_LCD
