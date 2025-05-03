@@ -192,6 +192,19 @@ LCD1602_Send_Data:
 ; - 0x01: xóa màn hình
 ; - 0x06: tự động tăng địa chỉ, không dịch màn hình
 ;-----------------------------------------------
+	mov A, #038h         ; 0x38 - Khoi tao ban dau
+        acall LCD1602_Send_Ins
+
+        mov A, #0Ch          ; 0x0C - ON, OFF
+        acall LCD1602_Send_Ins
+
+        mov A, #01h          ; 0x01 - Clear
+        acall LCD1602_Send_Ins
+
+        mov A, #06h          ; 0x06 - Entry Mode Set
+        acall LCD1602_Send_Ins
+
+        ret
 
 
 ;-----------------------------------------------
