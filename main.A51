@@ -212,6 +212,10 @@ LCD1602_Send_Data:
 ; Gửi lệnh 0x01 để xóa toàn bộ nội dung LCD
 ; Gọi LCD1602_Send_Ins, không cần thay đổi gì thêm
 ;-----------------------------------------------
+LCD_Clear:
+    mov A, #01h            ; Lệnh 0x01 clear
+    acall LCD1602_Send_Ins ; 
+    ret
 
 
 ;-----------------------------------------------
