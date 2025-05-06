@@ -327,6 +327,7 @@ DS1307_GET_TIME:
      	mov R4, A
       	acall I2C_Send_NoAck
       	acall I2C_Stop
+	ret
 
 ;-----------------------------------------------
 ; CONVERT_BCD_TO_ASCII
