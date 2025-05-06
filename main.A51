@@ -227,6 +227,31 @@ LCD_Clear:
 ;     row = 1 → addr = 0xC0 + col
 ; - Gán addr vào A, rồi gọi LCD1602_Send_Ins
 ;-----------------------------------------------
+;Đặt vị trí con trỏ tại (row, col)
+LCD_SETCURSOR:
+    mov A, R0           ; Kiểm tra hàng (row)
+    cjne A, #0, Row1    ; Nếu R0 ≠ 0 → row 1
+; Row = 0
+    mov A, #80h         ; 
+    add A, R1           ; A = 0x80 + col
+    sjmp SetCursor
+
+Row1:
+    mov A, #0C0h        ; Base address for row 1
+    add A, R1           ; A = 0xC0 + col
+
+SetCursor:
+    acall LCD1602_Send_Ins
+    ret
+
+;-------------------------------
+;LCD_Send_Char
+;-------------------------------
+; Gửi một ký tự đến LCD
+; A = ký tự ASCII cần hiển thị
+LCD_Send_Char:
+    acall LCD1602_Send_Data
+    ret
 
 
 ;-----------------------------------------------
@@ -239,6 +264,15 @@ LCD_Clear:
 ;     + CJNE A, #0, tiếp tục
 ;     + Gọi LCD1602_Send_Data
 ;-----------------------------------------------
+LCD_Send_String:
+    movx A, @DPTR            ; Đọc ký tự từ chuỗi tại địa chỉ DPTR
+    cjne A, #0, Continue     ; Nếu A ≠ 0 (chưa hết chuỗi), tiếp tục
+    ret                      ; Nếu gặp null (A = 0), kết thúc
+Continue:
+    acall LCD1602_Send_Data  ; Gửi ký tự ra LCD
+    inc DPTR                 ; Tăng địa chỉ chuỗi
+    sjmp LCD_Send_String     ; Lặp lại
+
 
 
 ;-----------------------------------------------
