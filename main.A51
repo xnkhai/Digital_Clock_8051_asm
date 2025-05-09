@@ -272,6 +272,27 @@ Continue:
     acall LCD1602_Send_Data  ; Gửi ký tự ra LCD
     inc DPTR                 ; Tăng địa chỉ chuỗi
     sjmp LCD_Send_String     ; Lặp lại
+;-----------------------------------------------
+LCD_Data:
+	MOV P0,A
+	SWAP A
+	ANL A, #OFOh
+	MOV P0, A
+	SETB P2.0
+	CLR P2.1
+	SETB P2.2
+	NOP
+	CLR P2.2
+	
+	MOV A, R0
+	ANL A, #OFh
+	MOV P0,A
+	SETB P2.0
+	CLR P2.1
+	SETB P2.2
+	NOP
+	CLR P2.2
+	RET
 
 
 
@@ -389,7 +410,34 @@ CONVERT_BCD_TO_ASCII:
 ; Định dạng: HH:MM:SS
 ; mục đích của hàm này là sao? là dùng để gọi các hàm đã viết phía trên để trong hàm main chỉ cần gọi hàm DISPLAY_TIME_TO_LCD
 ; và thêm một số cái delay thì sẽ hiện giờ 
+;Quy ước R2:seconds R3:minutes R4:hours
 ;-----------------------------------------------
-
+DISPLAY_TIME_TO_LCD:
+	MOV A, R4  ; hours
+	CALL CONVERT_BCD_TO_ASCII 
+	MOV A, R5
+	CALL LCD_Data	
+	MOV A, R6
+	CALL LCD_Data
+	MOV A, #':' ; hienthi dau :
+	CALL LCD_Data
+	
+	MOV A, R3  ; minutes
+	CALL CONVERT_BCD_TO_ASCII 
+	MOV A, R5
+	CALL LCD_Data	
+	MOV A, R6
+	CALL LCD_Data
+	MOV A, #':'
+	CALL LCD_Data
+	
+	MOV A, R2 ; seconds
+	CALL CONVERT_BCD_TO_ASCII 
+	MOV A, R5
+	CALL LCD_Data	
+	MOV A, R6
+	CALL LCD_Data
+	MOV A, #':'
+	CALL LCD_Data
 
 
