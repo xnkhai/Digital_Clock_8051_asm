@@ -4,7 +4,7 @@ LCD1602_RS_Pin equ P0.0
 LCD1602_RW_Pin equ P0.1
 LCD1602_EN_Pin equ P0.2
 LCD1602_Data_Port equ P1
-DS1307_Address equ 4eh
+DS1307_Address equ 0d0h
 SDA equ P3.6
 SCL equ P3.7
 DS1307_Second_Reg equ 00h
