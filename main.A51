@@ -1,29 +1,29 @@
-<<<<<<< HEAD
+
 ; definition
 LCD1602_RS_Pin equ P0.0
 LCD1602_RW_Pin equ P0.1
 LCD1602_EN_Pin equ P0.2
 LCD1602_Data_Port equ P1
-DS1307_Address equ #4eh
+DS1307_Address equ 4eh
 SDA equ P3.6
 SCL equ P3.7
-DS1307_Second_Reg equ #00h
-DS1307_Minutes_Reg equ #01h
-DS1307_Hours_Reg equ #02h
-DS1307_Day_Reg equ #03h
-DS1307_Date_Reg equ #04h
-DS1307_Month_Reg equ #05h
-DS1307_Year_Reg equ #06h
-DS1307_Control_Reg equ #07h
-DS1307_Ram equ #08h
-LCD_Clear_Screen equ #01h
-LCD_Reset_Cursor equ #02h
-LCD_Input_Set equ #04h
-LCD_Display_Switch equ #08h
-LCD_Shift equ #10h
-LCD_Function_Set equ #20h
-LCD_Set_CGRAM_Addr equ #40h
-LCD_Set_DDRAM_Addr equ #80h
+DS1307_Second_Reg equ 00h
+DS1307_Minutes_Reg equ 01h
+DS1307_Hours_Reg equ 02h
+DS1307_Day_Reg equ 03h
+DS1307_Date_Reg equ 04h
+DS1307_Month_Reg equ 05h
+DS1307_Year_Reg equ 06h
+DS1307_Control_Reg equ 07h
+DS1307_Ram equ 08h
+LCD_Clear_Screen equ 01h
+LCD_Reset_Cursor equ 02h
+LCD_Input_Set equ 04h
+LCD_Display_Switch equ 08h
+LCD_Shift equ 10h
+LCD_Function_Set equ 20h
+LCD_Set_CGRAM_Addr equ 40h
+LCD_Set_DDRAM_Addr equ 80h
 
 
 
@@ -294,7 +294,26 @@ LCD_Data:
 	CLR P2.2
 	RET
 
-
+;-----------------------------------------------
+; DS1307_WRITE_BYTE
+; Ghi 1 byte dữ liệu vào DS1307 tại địa chỉ reg
+; Tham số: A chứa địa chỉ thanh ghi (reg)
+; 	   B chứa dữ liệu cần ghi (data)		
+;-----------------------------------------------
+DS1307_WRITE_BYTE:
+	push ACC
+	mov A, #DS1307_Adress
+	acall I2C_Start
+	acall I2C_Send_Byte
+	acall I2C_Read_ACK
+    pop ACC
+	acall I2C_Send_Byte
+	acall I2C_Read_ACK
+	mov A, B
+	acall I2C_Send_Byte
+	acall I2C_Read_ACK
+	acall I2C_Stop
+	ret
 
 ;-----------------------------------------------
 ; DS1307_READ_BYTE
@@ -317,6 +336,73 @@ LCD_Data:
       	DJNZ R7, read_loop_reg;			(2 cycles)
       	setb SCL;					(1 cycle) 
       	ret;					(2 cycles)
+
+;-----------------------------------------------
+; DS1307_SET_SQW_FREQ
+; Cài đặt tần số xung output của DS1307
+; Tham số: 	A = 0x00 -> 1Hz
+;	    	A = 0x01 -> 4kHz
+;	    	A = 0x02 -> 8kHz
+;	    	A = 0x03 -> 32kHz 
+;-----------------------------------------------
+DS1307_SET_SQW_FREQ:
+    push ACC
+    mov A, #DS1307_Control_Reg
+    acall DS1307_READ_BYTE
+    mov B, A 
+    pop ACC
+
+	sqw_1hz:
+	cjne A, #00h, sqw_4kHz
+    mov A, B
+	anl A, #0fch
+    sjmp final_set_freq
+	
+	sqw_4kHz:
+	cjne A, #01h, sqw_8kHz
+    mov A, B
+    orl A, #1
+    anl A, #0fdh
+    sjmp final_set_freq
+
+	sqw_8kHz:
+	cjne A, #02h, sqw_32kHz
+    mov A, B
+    orl A, #2 
+    anl A, #0feh
+    sjmp final_set_freq
+
+	sqw_32kHz:
+    mov A, B
+    orl A, #3
+	
+    final_set_freq:
+	mov B, A
+	mov A, #DS1307_Control_Reg
+	acall DS1307_WRITE_BYTE
+    ret 
+
+
+;-----------------------------------------------
+; DS1307_SET_SQW
+; Bật tắt xung output của DS1307
+; Tham số: 	C = 0 -> off
+;           C = 1 -> on
+;-----------------------------------------------
+DS1307_SET_SQW:
+    mov A, #DS1307_Control_Reg 
+    acall DS1307_READ_BYTE
+    jnc off
+    on:
+    orl A, #1
+    sjmp final_set_sqw
+    off:
+    anl A, #0efh
+    final_set_sqw:
+    mov B, A 
+    mov A, #DS1307_Control_Reg
+    acall DS1307_WRITE_BYTE
+    ret
 
 ;-----------------------------------------------
 ; DS1307_GET_TIME
