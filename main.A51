@@ -303,20 +303,26 @@ LCD_Data:
 ; Trả về: A chứa dữ liệu đọc được từ DS1307
 ;huy
 ;-----------------------------------------------
-	DS1307_READ_BYTE:
-      	mov R7, #4; counter			(1 cycle)
-      	read_loop_reg:
-      	setb SCL;					(1 cycle)
-      	mov C, SDA; read SDA's state		(1 cycle)
-      	rlc A;	shift read bit to A register	(1 cycle)
-      	acall delay_3us;				(6 cycles)
-      	nop;					(1 cycle)
-     	clr SCL;					(1 cycle)
-     	acall delay_3us;				(6 cycles)
-	nop;					(1 cycle)
-      	DJNZ R7, read_loop_reg;			(2 cycles)
-      	setb SCL;					(1 cycle) 
-      	ret;					(2 cycles)
+DS1307_READ_BYTE:
+	PUSH Acc
+	mov A, #DS1307_Address
+      	acall I2C_Start
+      	acall I2C_Send_Byte
+     	acall I2C_Read_ACK
+     	pop Acc
+      	acall I2C_Send_Byte
+     	acall I2C_Read_ACK
+     	acall I2C_Stop
+    	mov A, #DS1307_Address
+    	orl A, #1
+   	acall I2C_Start
+     	acall I2C_Send_Byte
+     	acall I2C_Read_ACK
+      	acall I2C_Read_Byte
+      	acall I2C_Send_NoAck
+      	acall I2C_Stop
+	RET
+
 
 ;-----------------------------------------------
 ; DS1307_GET_TIME
@@ -325,65 +331,49 @@ LCD_Data:
 ;Huy
 ;-----------------------------------------------
 ;-----------------------------------------------
-DS1307_GET_TIME:
-;DS1307_Second_Reg
-	mov A, #DS1307_Address
-      	acall I2C_Start
-      	acall I2C_Send_Byte
-     	acall I2C_Read_ACK
-     	mov A, #DS1307_Second_Reg
-      	acall DS1307_READ_BYTE
-     	acall I2C_Read_ACK
-     	acall I2C_Stop
-    	mov A, #DS1307_Address
-    	orl A, #1
-   	acall I2C_Start
-     	acall I2C_Send_Byte
-     	acall I2C_Read_ACK
-      	acall I2C_Read_Byte
-     	mov R2, A
-      	acall I2C_Send_NoAck
-      	acall I2C_Stop
+DS1307_GET_SECOND:
+	MOV A, #DS1307_Second_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 30H, A
+	RET
 ;-----------------------------------------------
-;DS1307_Minutes_Reg
-	mov A, #DS1307_Address
-      	acall I2C_Start
-      	acall I2C_Send_Byte
-     	acall I2C_Read_ACK
-     	mov A, #DS1307_Minutes_Reg
-      	acall DS1307_READ_BYTE
-     	acall I2C_Read_ACK
-     	acall I2C_Stop
-    	mov A, #DS1307_Address
-    	orl A, #1
-   	acall I2C_Start
-     	acall I2C_Send_Byte
-     	acall I2C_Read_ACK
-      	acall I2C_Read_Byte
-     	mov R3, A
-      	acall I2C_Send_NoAck
-      	acall I2C_Stop
+DS1307_GET_MINUTES:
+	MOV A, #DS1307_Minutes_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 31H, A
+	RET
 ;-----------------------------------------------
-;DS1307_Hours_Reg
-	mov A, #DS1307_Address
-      	acall I2C_Start
-      	acall DS1307_READ_BYTE
-     	acall I2C_Read_ACK
-     	mov A, DS1307_Hours_Reg
-      	acall I2C_Send_Byte
-     	acall I2C_Read_ACK
-     	acall I2C_Stop
-    	mov A, #DS1307_Address
-    	orl A, #1
-   	acall I2C_Start
-     	acall I2C_Send_Byte
-     	acall I2C_Read_ACK
-      	acall I2C_Read_Byte
-     	mov R4, A
-      	acall I2C_Send_NoAck
-      	acall I2C_Stop
-	ret
-
+DS1307_GET_HOURS:	
+	MOV A, #DS1307_Hours_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 32H, A
+	RET
+;-----------------------------------------------
+DS1307_GET_DAY:	
+	MOV A, #DS1307_Day_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 33H, A
+	RET
+;-----------------------------------------------
+DS1307_GET_DATE:	
+	MOV A, #DS1307_Date_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 34H, A
+	RET
+	
+;-----------------------------------------------
+DS1307_GET_MONTH:	
+	MOV A, #DS1307_Month_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 35H, A
+	RET
+	
+;-----------------------------------------------
+DS1307_GET_YEAR:	
+	MOV A, #DS1307_Year_Reg
+	ACALL DS1307_READ_BYTE
+	MOV 36H, A
+	RET	
 ;-----------------------------------------------
 ; CONVERT_BCD_TO_ASCII
 ; Chuyển 1 byte BCD sang 2 ký tự ASCII (ví dụ: 0x45 -> '4', '5')
