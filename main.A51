@@ -460,6 +460,59 @@ DS1307_GET_YEAR:
 	ACALL DS1307_READ_BYTE
 	MOV 36H, A
 	RET	
+
+;;-----------------------------------------------
+;HÀM SET_TIME
+;HI?N TRUY?N GIÁ TR? C? Ð?NH VÔ 
+;;-----------------------------------------------
+DS1307_SET_SECOND:
+	mov B , A
+	mov A, #DS1307_Second_Reg
+	acall DS1307_WRITE_BYTE
+	RET
+	
+;;-----------------------------------------------
+DS1307_SET_MINUTES:
+	mov B , A
+	mov A, #DS1307_Minutes_Reg
+	acall DS1307_WRITE_BYTE
+	RET
+	
+;;-----------------------------------------------
+DS1307_SET_HOURS:
+	mov B , A
+	mov A, #DS1307_Hours_Reg
+	acall DS1307_WRITE_BYTE
+	RET
+
+;;-----------------------------------------------
+DS1307_SET_DAY:
+	mov B , A
+	mov A, #DS1307_Day_Reg
+	acall DS1307_WRITE_BYTE
+	RET
+
+;;-----------------------------------------------
+DS1307_SET_DATE:
+	mov B , A
+	mov A, #DS1307_Date_Reg
+	acall DS1307_WRITE_BYTE
+	RET
+	
+;;-----------------------------------------------
+DS1307_SET_MONTH:
+	mov B , A
+	mov A, #DS1307_Month_Reg
+	acall DS1307_WRITE_BYTE
+	RET	
+	
+;;-----------------------------------------------
+DS1307_SET_YEAR:
+	mov B , A
+	mov A, #DS1307_Year_Reg
+	acall DS1307_WRITE_BYTE
+	RET
+	
 ;-----------------------------------------------
 ; CONVERT_BCD_TO_ASCII
 ; Chuyển 1 byte BCD sang 2 ký tự ASCII (ví dụ: 0x45 -> '4', '5')
