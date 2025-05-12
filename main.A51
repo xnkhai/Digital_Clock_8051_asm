@@ -30,6 +30,15 @@ LCD_Set_DDRAM_Addr equ 80h
 org 0000h
 	jmp Start
 
+org 0030h
+    monday: db "MON", 0 
+    tuesday: db "TUE", 0
+    wednesday: db "WED", 0
+    thursday: db "THU", 0
+    friday: db "FRI", 0
+    saturday: db "SAT", 0 
+    sunday: db "SUN", 0
+
 org 0100h
 Start:
 	acall LCD_INIT			; Khởi tạo LCD
@@ -186,26 +195,35 @@ LCD1602_Send_Data:
 ;-----------------------------------------------
 ; LCD_INIT
 ; Khởi tạo LCD1602 chế độ 8-bit
-; Gửi các lệnh sau (dùng thanh ghi A + gọi LCD1602_Send_Ins):
-; - 0x38: chế độ 8-bit, 2 dòng
-; - 0x0C: hiển thị, tắt con trỏ
-; - 0x01: xóa màn hình
-; - 0x06: tự động tăng địa chỉ, không dịch màn hình
 ;-----------------------------------------------
-	mov A, #038h         ; 0x38 - Khoi tao ban dau
-        acall LCD1602_Send_Ins
-
-        mov A, #0Ch          ; 0x0C - ON, OFF
-        acall LCD1602_Send_Ins
-
-        mov A, #01h          ; 0x01 - Clear
-        acall LCD1602_Send_Ins
-
-        mov A, #06h          ; 0x06 - Entry Mode Set
-        acall LCD1602_Send_Ins
-
-        ret
-
+LCD_INIT:
+	; initialize lcd 1602
+	mov R2, #15d
+	acall delay_ms
+	mov A, #30h
+	acall LCD1602_Send_Ins
+	mov R2, #5d
+	acall delay_ms
+	mov A, #30h
+	acall LCD1602_Send_Ins
+	acall delay_2us
+	mov A, #30h
+	acall LCD1602_Send_Ins
+	mov R2, #10d
+	acall delay_ms
+	
+	;setup lcd 1602
+	mov A, #38h ; function set -> DL = 1 (8 bit mode), N = 1 (2 line), F = 0 (5 x 8 characters)
+	acall LCD1602_Send_Ins
+	mov A, #08h ; turn the display, cursor, blinking off (D = 0, C = 0, B = 0)
+	acall LCD1602_Send_Ins
+	mov A, #01h ; screen clear instruction code
+	acall LCD1602_Send_Ins
+	mov A, #06h ; input set -> I/D = 1 (Increment mode), S = 0 (no shift)
+	acall LCD1602_Send_Ins
+	mov A, #0Ch ; turn the dislay on, D = 1
+	acall LCD1602_Send_Ins    
+    ret 
 
 ;-----------------------------------------------
 ; LCD_CLEAR
@@ -244,9 +262,9 @@ SetCursor:
     acall LCD1602_Send_Ins
     ret
 
-;-------------------------------
+;-----------------------------------------------
 ;LCD_Send_Char
-;-------------------------------
+;-----------------------------------------------
 ; Gửi một ký tự đến LCD
 ; A = ký tự ASCII cần hiển thị
 LCD_Send_Char:
@@ -256,22 +274,21 @@ LCD_Send_Char:
 
 ;-----------------------------------------------
 ; LCD_SEND_STRING
-; LCD_Send_String
 ; Gửi chuỗi ký tự đến LCD
 ; - DPTR trỏ đến chuỗi kết thúc bằng 0 (null-terminated)
-; - Duyệt từng ký tự:
-;     + MOVX A, @DPTR
-;     + CJNE A, #0, tiếp tục
-;     + Gọi LCD1602_Send_Data
 ;-----------------------------------------------
-LCD_Send_String:
-    movx A, @DPTR            ; Đọc ký tự từ chuỗi tại địa chỉ DPTR
-    cjne A, #0, Continue     ; Nếu A ≠ 0 (chưa hết chuỗi), tiếp tục
-    ret                      ; Nếu gặp null (A = 0), kết thúc
-Continue:
+LCD_SEND_STRING:
+    clr A                    ; Đặt offset ban đầu = 0
+Next_Char:
+    push ACC
+    movc A, @A+DPTR          ; Đọc ký tự từ ROM (DPTR + offset A)
+    jz Done                  ; Nếu A == 0 (kết thúc chuỗi), thoát
     acall LCD1602_Send_Data  ; Gửi ký tự ra LCD
-    inc DPTR                 ; Tăng địa chỉ chuỗi
-    sjmp LCD_Send_String     ; Lặp lại
+    pop ACC 
+    inc A                    ; Tăng offset
+    sjmp Next_Char           ; Lặp lại
+Done:
+    ret
 ;-----------------------------------------------
 ;-----------------------------------------------
 ; DS1307_WRITE_BYTE
@@ -390,11 +407,9 @@ DS1307_SET_SQW:
     ret
 
 ;-----------------------------------------------
-; DS1307_GET_TIME
-; Đọc thời gian hiện tại từ DS1307 (giây, phút, giờ)
-; Trả về: R2 = giây, R3 = phút, R4 = giờ
-;Huy
+; DS1307_GET: Các hàm để lấy thông tin từ DS1307
 ;-----------------------------------------------
+
 ;-----------------------------------------------
 DS1307_GET_SECOND:
 	MOV A, #DS1307_Second_Reg
@@ -440,10 +455,10 @@ DS1307_GET_YEAR:
 	MOV 36H, A
 	RET	
 
-;;-----------------------------------------------
+;-----------------------------------------------
 ;HÀM SET_TIME
 ;HI?N TRUY?N GIÁ TR? C? Ð?NH VÔ 
-;;-----------------------------------------------
+;-----------------------------------------------
 DS1307_SET_SECOND:
 	mov B , A
 	mov A, #DS1307_Second_Reg
