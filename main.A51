@@ -527,6 +527,56 @@ CONVERT_BCD_TO_ASCII:
     mov R5, A 
     ret 
 
+
+;---------------------------------------------------
+; DS1307_CHANGE_CLOCK_FORMAT
+; Thay đổi định dạng hiển thị thời gian (12h/24h) của DS1307
+; Input: C (bit). Nếu C = 0 -> định dạng 24h
+;                   Nếu C = 1 -> định dạng 12h
+; Output phụ: Nếu là 12h, bit 5 cho biết AM/PM:
+;              0 = AM, 1 = PM → lưu vào B.1 để dùng bên ngoài
+; Tóm lại: Hàm đã đọc được dữ liệu giờ (tùy chế độ) lưu vào thanh ghi,
+; còn AM/PM thì dữ liệu đã được ghi vào thanh ghi B.1
+; khi viết display thì cần viết thêm hàm display AM PM kiểm tra B.1
+; Lưu ý: hàm này chỉ là hàm ĐỌC và CẬP NHẬT DỮ LIỆU chứ chưa phải là hàm hiển thị cuối cùng 
+;---------------------------------------------------
+DS1307_CHANGE_CLOCK_FORMAT:
+    mov B.0, C                  
+
+    mov R0, #DS1307_Hours_Reg
+    acall DS1307_READ_BYTE      
+    mov R7, A                  
+
+    mov C, B.0
+    jnc CLOCK_24H_FORMAT        ; C = 0 => nhảy đến định dạng 24h
+
+CLOCK_12H_FORMAT:
+    orl R7, #01000000b          
+
+    ;(AM/PM)
+    mov A, R7                   
+    anl A, #00100000b           ; Lọc lấy bit 5
+    jz AM_CASE                  ; Nếu bit 5 = 0 thì là AM
+    ; Nếu không thì là PM
+    setb B.1                    ; Ghi nhớ: B.1 = 1 → PM
+    sjmp WRITE_BACK
+
+AM_CASE:
+    clr B.1                     ; Ghi nhớ: B.1 = 0 → AM
+    sjmp WRITE_BACK
+
+CLOCK_24H_FORMAT:
+    anl R7, #10111111b          
+    clr B.1                     
+
+WRITE_BACK:
+    mov R0, #DS1307_Hours_Reg
+    mov A, R7
+    acall DS1307_WRITE_BYTE
+
+    ret
+
+
 ;-----------------------------------------------
 ; DISPLAY_TIME_TO_LCD
 ; Hiển thị thời gian hiện tại lên LCD1602 ở hàng 1, cột 0
