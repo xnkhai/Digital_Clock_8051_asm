@@ -584,8 +584,9 @@ WRITE_BACK:
 ; mục đích của hàm này là sao? là dùng để gọi các hàm đã viết phía trên để trong hàm main chỉ cần gọi hàm DISPLAY_TIME_TO_LCD
 ; và thêm một số cái delay thì sẽ hiện giờ 
 ;-----------------------------------------------
-DISPLAY_TIME_TO_LCD:
-	MOV A, 0X30  ; hours
+DISPLAY_HOURS_TO_LCD:
+	ACALL DS1307_GET_HOURS	 
+	MOV A, 30H  ; hours
 	ACALL CONVERT_BCD_TO_ASCII 
 	MOV A, R5
 	ACALL LCD1602_Send_Data	
@@ -593,8 +594,11 @@ DISPLAY_TIME_TO_LCD:
 	ACALL LCD1602_Send_Data
 	MOV A, #03Ah ; hienthi dau :
 	ACALL LCD1602_Send_Data
-	
-	MOV A, 0X31  ; minutes
+	RET
+
+DISPLAY_MINUTES_TO_LCD:
+	ACALL DS1307_GET_MINUTES
+	MOV A, 31H  ; minutes
 	ACALL CONVERT_BCD_TO_ASCII 
 	MOV A, R5
 	ACALL LCD1602_Send_Data
@@ -602,7 +606,10 @@ DISPLAY_TIME_TO_LCD:
 	ACALL LCD1602_Send_Data
 	MOV A, #03Ah
 	ACALL LCD1602_Send_Data
-	
+	RET
+
+DISPLAY_SECONDS_TO_LCD:
+	ACALL DS1307_GET_SECONDS
 	MOV A, 32H ; seconds
 	ACALL CONVERT_BCD_TO_ASCII 
 	MOV A, R5
@@ -611,7 +618,70 @@ DISPLAY_TIME_TO_LCD:
 	ACALL LCD1602_Send_Data
 	MOV A, #03Ah
 	ACALL LCD1602_Send_Data
-	
-	RET 
+	RET
 
+DISPLAY_DAY_TO_LCD:
+	ACALL DS1307_GET_DAY     ; -> 33H
+    	MOV A, 33H       ; A = thứ (1..7)
+    	DEC A            ; Đổi về 0..6
+    	MOV B, #4        ; Mỗi chuỗi dài 4 byte (3 + null)
+    	MUL AB           ; DPTR = DayStrings + A*4
+    	MOV DPTR, #0030h
+    	ADD A, DPL
+    	MOV DPL, A
+    	CLR A
+    	ADDC A, DPH
+    	MOV DPH, A
+
+DISPLAY_DATE_TO_LCD:
+	ACALL DS1307_GET_DATE    ; -> 34H
+    	ACALL DS1307_GET_MONTH   ; -> 35H
+    	ACALL DS1307_GET_YEAR    ; -> 36H
+	
+	MOV A, 33H ; date
+	ACALL CONVERT_BCD_TO_ASCII 
+	MOV A, R5
+	ACALL LCD1602_Send_Data
+	MOV A, R6
+	ACALL LCD1602_Send_Data
+	MOV A, #02Fh
+	ACALL LCD1602_Send_Data
+	
+	
+	MOV A, 34H ; month
+	ACALL CONVERT_BCD_TO_ASCII 
+	MOV A, R5
+	ACALL LCD1602_Send_Data
+	MOV A, R6
+	ACALL LCD1602_Send_Data
+	MOV A, #02Fh
+	ACALL LCD1602_Send_Data
+	
+	
+	MOV A, 35H ; year
+	ACALL CONVERT_BCD_TO_ASCII 
+	MOV A, R5
+	ACALL LCD1602_Send_Data
+	MOV A, R6
+	ACALL LCD1602_Send_Data
+	MOV A, #02Fh
+	ACALL LCD1602_Send_Data
+	
+	RET
+
+DISPLAY_TIME_TO_LCD:
+	MOV R0, #0
+	MOV R1, #0
+	ACALL LCD_SETCURSOR
+	ACALL DISPLAY_DAY_TO_LCD
+	ACALL DISPLAY_DATE_TO_LCD
+
+	MOV R0, #1
+	MOV R0, #0
+	ACALL LCD_SETCURSOR
+	ACALL DISPLAY_HOURS_TO_LCD
+	ACALL DISPLAY_MINUTES_TO_LCD
+	ACALL DISPLAY_SECONDS_TO_LCD
+
+	RET
 
